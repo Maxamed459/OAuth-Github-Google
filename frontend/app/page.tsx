@@ -12,7 +12,7 @@ export default function Home() {
           <button
             type="button"
             onClick={() => {
-              window.location.href = "http://localhost:4001/auth/github";
+              window.location.href = "http://localhost:4001/api/auth/github";
             }}
             className="px-6 py-3 bg-black text-white rounded-md flex items-center justify-center gap-2 shadow hover:shadow-slate-800 hover:bg-black/90"
           >
@@ -22,7 +22,7 @@ export default function Home() {
           <button
             type="button"
             onClick={() => {
-              window.location.href = "http://localhost:4001/auth/google";
+              window.location.href = "http://localhost:4001/api/auth/google";
             }}
             className="px-6 py-3 border border-black text-black rounded-md flex items-center justify-center gap-2 shadow hover:shadow-slate-800"
           >
