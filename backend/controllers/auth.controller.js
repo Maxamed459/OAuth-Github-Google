@@ -6,10 +6,7 @@ import { generateCryptoString } from "../utils/generateCrypto.js"
 // Github
 export const github_oauth = (_req, res) => {
     const redirectUrl = "http://localhost:4001/api/auth/github/callback"
-
     const state = generateCryptoString();
-
-
     res.cookie('oauth_state', state, { httpOnly: true, secure: false });
 
     const url = `https://github.com/login/oauth/authorize?client_id=${GITHUB_CLIENT_ID}&redirect_uri=${redirectUrl}&scope=user:email&state=${state}`;
@@ -21,7 +18,6 @@ export const github_oauth_callback = async (req, res) => {
     const { code, state } = req.query;
     const savedState = req.cookies.oauth_state;
 
-
     if (!state || state !== savedState) {
         return res.status(403).json({
             success: false,
@@ -30,7 +26,6 @@ export const github_oauth_callback = async (req, res) => {
     }
 
     try {
-
         const tokenRes = await axios.post(
             "https://github.com/login/oauth/access_token",
             {
@@ -50,11 +45,9 @@ export const github_oauth_callback = async (req, res) => {
             headers: { Authorization: `Bearer ${accessToken}` },
         });
 
-
         const emailRes = await axios.get("https://api.github.com/user/emails", {
             headers: { Authorization: `Bearer ${accessToken}` }
         });
-
 
         const email = emailRes.data.find((e) => e.primary && e.verified)?.email;
 
