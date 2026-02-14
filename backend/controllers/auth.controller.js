@@ -1,17 +1,33 @@
 import axios from "axios"
-import { PORT, GITHUB_CLIENT_ID, GITHUB_CLIENT_SECRET, GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET } from "../config/config.js"
+import { GITHUB_CLIENT_ID, GITHUB_CLIENT_SECRET, GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET } from "../config/config.js"
+import { generateCryptoString } from "../utils/generateCrypto.js"
+
 
 // Github
 export const github_oauth = (_req, res) => {
     const redirectUrl = "http://localhost:4001/api/auth/github/callback"
 
-    const url = `https://github.com/login/oauth/authorize?client_id=${GITHUB_CLIENT_ID}&redirect_uri=${redirectUrl}&scope=user:email`;
+    const state = generateCryptoString();
+
+
+    res.cookie('oauth_state', state, { httpOnly: true, secure: false });
+
+    const url = `https://github.com/login/oauth/authorize?client_id=${GITHUB_CLIENT_ID}&redirect_uri=${redirectUrl}&scope=user:email&state=${state}`;
 
     res.redirect(url);
 }
 // Github callback
 export const github_oauth_callback = async (req, res) => {
-    const code = req.query.code;
+    const { code, state } = req.query;
+    const savedState = req.cookies.oauth_state;
+
+
+    if (!state || state !== savedState) {
+        return res.status(403).json({
+            success: false,
+            message: "Invalid state: Possible CSRF attack."
+        });
+    }
 
     try {
 
@@ -42,6 +58,8 @@ export const github_oauth_callback = async (req, res) => {
 
         const email = emailRes.data.find((e) => e.primary && e.verified)?.email;
 
+        res.clearCookie('oauth_state');
+
         console.log("✅ GirHub usr:", {
             name: userRes.data.name,
             email
@@ -62,15 +80,30 @@ export const google_oauth = (req, res) => {
 
     const redirectUrl = "http://localhost:4001/api/auth/google/callback"
 
-    const url = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${GOOGLE_CLIENT_ID}&redirect_uri=${redirectUrl}&response_type=code&scope=email profile&access_type=offline&prompt=consent`;
+    const state = generateCryptoString();
+    console.log("State from crypto: ", state);
+
+    res.cookie('oauth_state', state, { httpOnly: true, secure: false });
+
+    const url = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${GOOGLE_CLIENT_ID}&redirect_uri=${redirectUrl}&response_type=code&scope=email profile&state=${state}&access_type=offline&prompt=consent`;
 
     res.redirect(url);
 }
 
 // Google oauth callback
 export const google_oauth_callback = async (req, res) => {
-    const code = req.query.code;
+    const { code, state } = req.query;
+    const savedState = req.cookies.oauth_state;
+    console.log("State from the req.query; ", state);
+    console.log("savedState from the req.cookie; ", savedState);
     const redirectUrl = "http://localhost:4001/api/auth/google/callback"
+
+    if (!state || state !== savedState) {
+        return res.status(403).json({
+            success: false,
+            message: "Invalid state: Possible CSRF attack."
+        });
+    }
 
     try {
 
@@ -91,7 +124,7 @@ export const google_oauth_callback = async (req, res) => {
             }
         );
 
-        // console.log("User Profile", profileRes)
+        res.clearCookie('oauth_state');
 
         console.log("google, User", {
             name: profileRes.data.name,
