@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import "../globals.css";
-import SideBar from "@/components/sideBar";
+import DashboardShell from "@/components/dashboard/DashboardShell";
 
 
 export const metadata: Metadata = {
@@ -14,24 +14,6 @@ export default function DashboardLayout({
   children: React.ReactNode;
 }>) {
   return (
-    // <div className="w-full h-screen flex items-center">
-    //   <div className="w-65">
-    //   <SideBar />
-    //   </div>
-    //   <div className="flex-1 overflow-auto">
-    //   {children}
-    //   </div>
-    // </div>
-    <div className="w-full h-screen flex overflow-hidden">
-      {/* sidebar: fixed width, full height */}
-      <aside className="w-64 flex-shrink-0 h-full">
-        <SideBar />
-      </aside>
-
-      {/* main: scrollable area */}
-      <main className="flex-1 overflow-auto h-full">
-        {children}
-      </main>
-    </div>
+    <DashboardShell>{children}</DashboardShell>
   );
 }
